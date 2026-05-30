@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FolderKanban, MessageSquare, Eye, Plus, ArrowRight } from 'lucide-react'
+import { FolderKanban, MessageSquare, Eye, Plus, ArrowRight, Users } from 'lucide-react'
 import api from '../../api'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ projects: 0, messages: 0, unread: 0 })
+  const [stats, setStats] = useState({ projects: 0, messages: 0, unread: 0, visits: 0 })
   const [recentMessages, setRecentMessages] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -12,21 +12,24 @@ export default function AdminDashboard() {
     Promise.all([
       api.get('/api/projects'),
       api.get('/api/messages'),
-    ]).then(([projRes, msgRes]) => {
+      api.get('/api/visits'),
+    ]).then(([projRes, msgRes, visitRes]) => {
       const messages = msgRes.data
       setStats({
         projects: projRes.data.length,
         messages: messages.length,
         unread: messages.filter(m => !m.read).length,
+        visits: visitRes.data.count,
       })
       setRecentMessages(messages.slice(0, 4))
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   const cards = [
-    { label: 'Total Projects', value: stats.projects, icon: FolderKanban, color: 'text-brand-400', bg: 'bg-brand-500/10 border-brand-500/20', to: '/admin/projects' },
-    { label: 'Total Messages', value: stats.messages, icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', to: '/admin/messages' },
-    { label: 'Unread Messages', value: stats.unread, icon: Eye, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', to: '/admin/messages' },
+    { label: 'Total Visits', value: stats.visits, icon: Users, color: 'text-brand-400', bg: 'bg-brand-500/10 border-brand-500/20', to: '/admin' },
+    { label: 'Total Projects', value: stats.projects, icon: FolderKanban, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', to: '/admin/projects' },
+    { label: 'Total Messages', value: stats.messages, icon: MessageSquare, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', to: '/admin/messages' },
+    { label: 'Unread Messages', value: stats.unread, icon: Eye, color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20', to: '/admin/messages' },
   ]
 
   return (
@@ -37,7 +40,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
+      <div className="grid md:grid-cols-4 gap-6 mb-10">
         {cards.map(({ label, value, icon: Icon, color, bg, to }) => (
           <Link key={label} to={to} className="card hover:border-slate-700 transition-all hover:-translate-y-0.5 group">
             <div className="flex items-start justify-between">

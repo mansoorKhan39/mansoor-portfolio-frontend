@@ -4,6 +4,7 @@ import { ArrowRight, Download, Github, Linkedin, Mail, Code2, Brain, Database, G
 import api from '../api'
 import ProjectCard from '../components/ProjectCard'
 import { useTyping } from '../hooks/useTyping'
+import VisitorCounter from '../components/VisitorCounter'
 
 const skills = [
   {
@@ -166,6 +167,11 @@ export default function Home() {
                   className="flex items-center gap-2 transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>
                   <Mail size={18} /> Email
                 </a>
+              </div>
+
+              {/* Visitor counter */}
+              <div className="mt-6 animate-fade-up animate-delay-500">
+                <VisitorCounter />
               </div>
             </div>
 
