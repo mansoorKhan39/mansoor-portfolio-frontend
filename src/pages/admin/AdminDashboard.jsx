@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-white mb-1">Dashboard</h1>
         <p className="text-slate-500 font-body text-sm">Welcome back, Mansoor 👋</p>

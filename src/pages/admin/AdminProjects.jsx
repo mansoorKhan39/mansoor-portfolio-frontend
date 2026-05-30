@@ -104,7 +104,7 @@ export default function AdminProjects() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl font-bold text-white mb-1">Projects</h1>
