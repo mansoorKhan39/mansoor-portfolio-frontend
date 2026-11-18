@@ -1,84 +1,127 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Sun, Moon, FileText } from 'lucide-react'
-import { useTheme } from '../context/ThemeContext'
+import { Menu, X } from 'lucide-react'
+import HoverLinks from './HoverLinks'
 
-const links = [
-  { to: '/', label: 'Home' },
+const primaryLinks = [
+  { to: '/about', label: 'About' },
   { to: '/projects', label: 'Projects' },
+  { to: '/case-studies', label: 'Case Studies' },
+  { to: '/skills', label: 'Skills' },
+  { to: '/journey', label: 'Journey' },
+]
+
+const mobileAllLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/about', label: 'About' },
+  { to: '/projects', label: 'Projects' },
+  { to: '/case-studies', label: 'Case Studies' },
+  { to: '/skills', label: 'Skills' },
+  { to: '/journey', label: 'Journey' },
+  { to: '/education', label: 'Education' },
   { to: '/resume', label: 'Resume' },
-  { to: '/contact', label: 'Contact' },
 ]
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const { dark, toggle } = useTheme()
   const location = useLocation()
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handler)
+    const handler = () => setScrolled(window.scrollY > 24)
+    window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  useEffect(() => setOpen(false), [location])
+  useEffect(() => {
+    setOpen(false)
+  }, [location])
+
+  const isRouteActive = (to) => {
+    if (to === '/') return location.pathname === '/'
+    return location.pathname === to || location.pathname.startsWith(`${to}/`)
+  }
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-[var(--border)]' : ''}`}>
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="font-display font-bold text-xl tracking-tight hover:text-brand-400 transition-colors" style={{color: 'var(--text-primary)'}}>
-          <span className="text-brand-400">&lt;</span>
-          <span className="gradient-text">MAK</span>
-          <span className="text-brand-400">/&gt;</span>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'glass-panel border-b border-[var(--border)]'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between gap-8">
+        {/* Zone 1: Single-line Brand Wordmark */}
+        <Link
+          to="/"
+          className="font-display font-bold text-base md:text-lg tracking-tight whitespace-nowrap shrink-0 transition-opacity hover:opacity-80"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Mansoor Ali Khan
         </Link>
 
-        <div className="hidden md:flex items-center gap-6">
-          {links.map(({ to, label }) => (
-            <Link key={to} to={to}
-              className={`font-body text-sm font-medium transition-colors relative group ${location.pathname === to ? 'text-brand-400' : 'hover:text-[var(--text-primary)]'}`}
-              style={{ color: location.pathname === to ? undefined : 'var(--text-muted)' }}
-            >
-              {label}
-              <span className={`absolute -bottom-0.5 left-0 h-px bg-brand-400 transition-all duration-300 ${location.pathname === to ? 'w-full' : 'w-0 group-hover:w-full'}`} />
-            </Link>
-          ))}
-
-          {/* Dark/Light toggle */}
-          <button onClick={toggle}
-            className="p-2 rounded-lg border border-[var(--border)] hover:border-brand-500/50 transition-all"
-            title={dark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {dark ? <Sun size={16} className="text-brand-400" /> : <Moon size={16} className="text-slate-600" />}
-          </button>
-
-          <a href="https://github.com/mansoorKhan39" target="_blank" rel="noreferrer" className="btn-primary text-sm py-2 px-4">
-            GitHub
-          </a>
+        {/* Zone 2: Clean single-line kinetic HoverLinks */}
+        <div className="hidden lg:flex items-center gap-8">
+          {primaryLinks.map(({ to, label }) => {
+            const active = isRouteActive(to)
+            return (
+              <Link
+                key={to}
+                to={to}
+                className="font-body text-sm font-medium whitespace-nowrap shrink-0 transition-colors py-1"
+                style={{ color: active ? 'var(--accent)' : 'var(--text-primary)' }}
+              >
+                <HoverLinks text={label} />
+              </Link>
+            )
+          })}
         </div>
 
-        <div className="md:hidden flex items-center gap-3">
-          <button onClick={toggle} className="p-2 rounded-lg border border-[var(--border)] transition-all">
-            {dark ? <Sun size={16} className="text-brand-400" /> : <Moon size={16} className="text-slate-600" />}
-          </button>
-          <button onClick={() => setOpen(!open)} style={{color: 'var(--text-muted)'}}>
-            {open ? <X size={22} /> : <Menu size={22} />}
+        {/* Zone 3: 1 Primary CTA Action */}
+        <div className="hidden lg:flex items-center shrink-0">
+          <Link to="/contact" className="btn-primary text-xs py-2 px-5">
+            Contact
+          </Link>
+        </div>
+
+        {/* Mobile Menu Trigger */}
+        <div className="lg:hidden flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="p-2.5 rounded-xl border border-[var(--border)]"
+            style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-card)' }}
+            aria-label="Toggle navigation menu"
+          >
+            {open ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
       </nav>
 
       {open && (
-        <div className="md:hidden backdrop-blur-md border-b border-[var(--border)] px-6 py-4 flex flex-col gap-4"
-          style={{ backgroundColor: 'var(--bg-primary)' }}>
-          {links.map(({ to, label }) => (
-            <Link key={to} to={to}
-              className={`font-body text-sm font-medium py-2 transition-colors ${location.pathname === to ? 'text-brand-400' : ''}`}
-              style={{ color: location.pathname === to ? undefined : 'var(--text-muted)' }}
-            >
-              {label}
-            </Link>
-          ))}
-          <a href="https://github.com/mansoorKhan39" target="_blank" rel="noreferrer" className="btn-primary text-sm py-2 w-fit">GitHub</a>
+        <div className="lg:hidden glass-panel border-b border-[var(--border)] px-6 py-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {mobileAllLinks.map(({ to, label }) => {
+            const active = isRouteActive(to)
+            return (
+              <Link
+                key={to}
+                to={to}
+                className="font-body text-sm font-medium py-2.5 px-3 rounded-lg transition-colors whitespace-nowrap"
+                style={{
+                  color: active ? 'var(--accent)' : 'var(--text-primary)',
+                  backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
+                }}
+              >
+                {label}
+              </Link>
+            )
+          })}
+          <Link
+            to="/contact"
+            className="btn-primary text-xs py-2.5 px-4 w-fit col-span-2 sm:col-span-3 mt-2"
+          >
+            Contact
+          </Link>
         </div>
       )}
     </header>

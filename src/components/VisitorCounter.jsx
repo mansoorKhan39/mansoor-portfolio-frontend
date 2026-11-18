@@ -6,15 +6,17 @@ export default function VisitorCounter() {
   const [count, setCount] = useState(null)
 
   useEffect(() => {
-    // Track visit once per session
     const tracked = sessionStorage.getItem('visited')
     if (!tracked) {
-      api.post('/api/visits/track')
-        .then(res => { setCount(res.data.count); sessionStorage.setItem('visited', 'true') })
+      api.post('/api/visits/track', { page: window.location.pathname })
+        .then((res) => {
+          setCount(res.data.count)
+          sessionStorage.setItem('visited', 'true')
+        })
         .catch(() => {})
     } else {
       api.get('/api/visits')
-        .then(res => setCount(res.data.count))
+        .then((res) => setCount(res.data.count))
         .catch(() => {})
     }
   }, [])
@@ -22,10 +24,14 @@ export default function VisitorCounter() {
   if (count === null) return null
 
   return (
-    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--border)] text-sm font-mono"
-      style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-muted)' }}>
-      <Eye size={14} className="text-brand-400" />
-      <span className="text-brand-400 font-bold">{count.toLocaleString()}</span>
+    <div
+      className="inline-flex items-center gap-2 text-xs font-mono tabular-nums"
+      style={{ color: 'var(--text-dim)' }}
+    >
+      <Eye size={14} style={{ color: 'var(--metallic-silver)' }} />
+      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+        {count.toLocaleString()}
+      </span>
       <span>total visits</span>
     </div>
   )

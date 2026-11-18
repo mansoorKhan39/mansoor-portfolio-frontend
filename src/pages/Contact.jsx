@@ -1,13 +1,17 @@
 import { useState } from 'react'
-import { Mail, MapPin, Github, Linkedin, Send, CheckCircle } from 'lucide-react'
+import { Mail, MapPin, Github, Linkedin, Send, CheckCircle, Briefcase, ArrowUpRight, Globe } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../api'
+import Ambient3DBackground from '../components/Ambient3DBackground'
+import TiltCard3D from '../components/TiltCard3D'
+import { PERSONAL_PROFILE, OPEN_OPPORTUNITIES } from '../data/portfolioData'
 
 const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'mansooralikhan1029@gmail.com', href: 'mailto:mansooralikhan1029@gmail.com' },
-  { icon: MapPin, label: 'Location', value: 'Pakistan', href: null },
-  { icon: Github, label: 'GitHub', value: 'github.com/mansoorKhan39', href: 'https://github.com/mansoorKhan39' },
-  { icon: Linkedin, label: 'LinkedIn', value: 'https://www.linkedin.com/in/mansoor-ali-khan-b27a42304', href: 'https://www.linkedin.com/in/mansoor-ali-khan-b27a42304' },
+  { icon: Mail, label: 'Email', value: PERSONAL_PROFILE.email, href: `mailto:${PERSONAL_PROFILE.email}` },
+  { icon: MapPin, label: 'Location', value: PERSONAL_PROFILE.location, href: null },
+  { icon: Github, label: 'GitHub', value: 'github.com/mansoorKhan39', href: PERSONAL_PROFILE.github },
+  { icon: Linkedin, label: 'LinkedIn', value: 'linkedin.com/in/mansoor-ali-khan-b27a42304', href: PERSONAL_PROFILE.linkedin },
+  { icon: Globe, label: 'Previous Portfolio', value: 'mansoor-portfolio-frontend-w3ek.vercel.app', href: PERSONAL_PROFILE.existingPortfolio },
 ]
 
 export default function Contact() {
@@ -15,9 +19,9 @@ export default function Contact() {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
-  const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }))
+  const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name || !form.email || !form.message) {
       toast.error('Please fill in all required fields.')
@@ -27,7 +31,7 @@ export default function Contact() {
     try {
       await api.post('/api/messages', form)
       setSent(true)
-      toast.success('Message sent! I\'ll get back to you soon.')
+      toast.success("Message sent! I'll get back to you soon.")
       setForm({ name: '', email: '', subject: '', message: '' })
     } catch {
       toast.error('Failed to send message. Please try again.')
@@ -37,132 +41,186 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
-      <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-16 text-center">
-          <p className="text-brand-400 font-mono text-sm mb-3">// get in touch</p>
-          <h1 className="section-heading mb-4">Let's Talk</h1>
-          <p className="text-slate-400 font-body max-w-xl mx-auto">
-            Have a project, opportunity, or just want to say hello? My inbox is always open.
+    <div className="min-h-screen relative pt-28 pb-24 overflow-hidden">
+      <Ambient3DBackground className="fixed inset-0 w-full h-full z-0" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-6">
+        <div className="mb-14 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--text-dim)' }}>
+            Get In Touch
+          </p>
+          <h1 className="section-heading mb-4">
+            Let&apos;s <span className="chrome-text">Connect</span>
+          </h1>
+          <p className="font-body max-w-xl mx-auto" style={{ color: 'var(--text-muted)' }}>
+            Reach out regarding junior engineering roles, internships, backend/AI projects, or technical collaborations.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-5 gap-12">
-          {/* Contact info */}
+        <div className="grid md:grid-cols-5 gap-10 items-start">
+          {/* Contact info + Opportunities */}
           <div className="md:col-span-2 space-y-6">
-            <div>
-              <h2 className="font-display font-semibold text-white text-xl mb-2">Contact Information</h2>
-              <p className="text-slate-400 text-sm font-body leading-relaxed">
-                I'm currently open to freelance projects, full-time roles, and interesting collaborations.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {contactInfo.map(({ icon: Icon, label, value, href }) => (
-                <div key={label} className="flex items-center gap-4">
-                  <div className="p-2.5 rounded-lg bg-brand-500/10 border border-brand-500/20">
-                    <Icon size={18} className="text-brand-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs font-mono">{label}</p>
-                    {href ? (
-                      <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
-                        className="text-slate-300 text-sm hover:text-brand-400 transition-colors">
-                        {value}
-                      </a>
-                    ) : (
-                      <p className="text-slate-300 text-sm">{value}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-6 bg-gradient-to-br from-brand-500/10 to-purple-500/10 rounded-2xl border border-brand-500/20">
-              <p className="text-brand-400 font-mono text-xs mb-2">// status</p>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-brand-400 animate-pulse" />
-                <span className="text-white font-semibold text-sm">Available for hire</span>
+            <div className="card space-y-5">
+              <div>
+                <h2 className="font-display font-bold text-xl mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Contact Information
+                </h2>
+                <p className="text-sm font-body leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  {PERSONAL_PROFILE.degree} ({PERSONAL_PROFILE.semester}) at {PERSONAL_PROFILE.university}.
+                </p>
               </div>
-              <p className="text-slate-400 text-xs mt-2 font-body">Open to remote & on-site roles in Pakistan and internationally.</p>
+
+              <div className="space-y-4">
+                {contactInfo.map(({ icon: Icon, label, value, href }) => (
+                  <div key={label} className="flex items-center gap-3.5">
+                    <div className="p-2.5 rounded-xl border border-[var(--border)] shrink-0" style={{ backgroundColor: 'var(--bg-sidebar)' }}>
+                      <Icon size={17} style={{ color: 'var(--chrome-highlight)' }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-mono" style={{ color: 'var(--text-dim)' }}>
+                        {label}
+                      </p>
+                      {href ? (
+                        <a
+                          href={href}
+                          target={href.startsWith('http') ? '_blank' : undefined}
+                          rel="noreferrer"
+                          className="text-sm hover:opacity-80 transition-opacity truncate inline-flex items-center gap-1 max-w-full"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
+                          <span className="truncate">{value}</span>
+                          {href.startsWith('http') && <ArrowUpRight size={12} className="shrink-0" />}
+                        </a>
+                      ) : (
+                        <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                          {value}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="card border-[var(--border-strong)]">
+              <div className="flex items-center gap-2.5 mb-3">
+                <Briefcase size={16} style={{ color: 'var(--chrome-highlight)' }} />
+                <span className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                  Open Opportunities
+                </span>
+              </div>
+              <ul className="space-y-1.5 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                {OPEN_OPPORTUNITIES.map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <span style={{ color: 'var(--text-dim)' }}>·</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
           {/* Form */}
           <div className="md:col-span-3">
-            {sent ? (
-              <div className="card flex flex-col items-center justify-center py-16 text-center">
-                <CheckCircle size={56} className="text-brand-400 mb-4" />
-                <h3 className="font-display text-2xl font-bold text-white mb-2">Message Sent!</h3>
-                <p className="text-slate-400 font-body mb-6">Thanks for reaching out. I'll get back to you within 24 hours.</p>
-                <button onClick={() => setSent(false)} className="btn-outline text-sm">Send Another Message</button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="card space-y-5">
-                <h2 className="font-display font-semibold text-white text-xl mb-2">Send a Message</h2>
+            <TiltCard3D maxTilt={3}>
+              {sent ? (
+                <div className="card flex flex-col items-center justify-center py-16 text-center">
+                  <CheckCircle size={52} className="mb-4" style={{ color: 'var(--chrome-highlight)' }} />
+                  <h3 className="font-display text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    Message Sent!
+                  </h3>
+                  <p className="font-body mb-6 max-w-sm" style={{ color: 'var(--text-muted)' }}>
+                    Thanks for reaching out. Your message has been saved and I&apos;ll respond soon.
+                  </p>
+                  <button onClick={() => setSent(false)} className="btn-outline text-sm">
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="card space-y-5">
+                  <h2 className="font-display font-bold text-xl mb-1" style={{ color: 'var(--text-primary)' }}>
+                    Send a Message
+                  </h2>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
+                        Name <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={form.name}
+                        onChange={handleChange}
+                        placeholder="Your name"
+                        className="input-field"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
+                        Email <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="your@email.com"
+                        className="input-field"
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-slate-400 text-xs font-mono mb-2">Name <span className="text-rose-400">*</span></label>
+                    <label className="block text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
+                      Subject
+                    </label>
                     <input
                       type="text"
-                      name="name"
-                      value={form.name}
+                      name="subject"
+                      value={form.subject}
                       onChange={handleChange}
-                      placeholder="Your name"
+                      placeholder="Role, internship, or collaboration topic"
                       className="input-field"
-                      required
                     />
                   </div>
+
                   <div>
-                    <label className="block text-slate-400 text-xs font-mono mb-2">Email <span className="text-rose-400">*</span></label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={form.email}
+                    <label className="block text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>
+                      Message <span className="text-rose-400">*</span>
+                    </label>
+                    <textarea
+                      name="message"
+                      value={form.message}
                       onChange={handleChange}
-                      placeholder="your@email.com"
-                      className="input-field"
+                      placeholder="Share details about the role, project, or collaboration..."
+                      rows={6}
+                      className="input-field resize-none"
                       required
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-slate-400 text-xs font-mono mb-2">Subject</label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={form.subject}
-                    onChange={handleChange}
-                    placeholder="What's this about?"
-                    className="input-field"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 text-xs font-mono mb-2">Message <span className="text-rose-400">*</span></label>
-                  <textarea
-                    name="message"
-                    value={form.message}
-                    onChange={handleChange}
-                    placeholder="Tell me about your project or opportunity..."
-                    rows={6}
-                    className="input-field resize-none"
-                    required
-                  />
-                </div>
-
-                <button type="submit" disabled={loading} className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed">
-                  {loading ? (
-                    <><span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" /> Sending...</>
-                  ) : (
-                    <><Send size={18} /> Send Message</>
-                  )}
-                </button>
-              </form>
-            )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={17} /> Send Message
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </TiltCard3D>
           </div>
         </div>
       </div>

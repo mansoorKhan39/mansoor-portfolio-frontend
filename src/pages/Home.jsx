@@ -1,391 +1,712 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Download, Github, Linkedin, Mail, Code2, Brain, Database, Globe, Cpu, Sparkles } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import toast from 'react-hot-toast'
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Download,
+  Github,
+  Linkedin,
+  Mail,
+  BookOpen,
+  Layers,
+  Send,
+  Loader,
+  CheckCircle2,
+  ExternalLink,
+} from 'lucide-react'
 import api from '../api'
-import ProjectCard from '../components/ProjectCard'
-import { useTyping } from '../hooks/useTyping'
+import { useTheme } from '../context/ThemeContext'
+import {
+  PERSONAL_PROFILE,
+  JOURNEY_MILESTONES,
+  CASE_STUDIES,
+  ENGINEERING_PRACTICES,
+} from '../data/portfolioData'
+import { syncProjectsFromApi } from '../utils/projectSync'
+import Ambient3DBackground from '../components/Ambient3DBackground'
+import TiltCard3D from '../components/TiltCard3D'
+import HeroPortraitParallax from '../components/HeroPortraitParallax'
+import LanyardPortraitCard from '../components/LanyardPortraitCard'
+import ProjectShowcase3D from '../components/ProjectShowcase3D'
+import CaseStudyDrawer from '../components/CaseStudyDrawer'
+import SkillTimeline from '../components/SkillTimeline'
 import VisitorCounter from '../components/VisitorCounter'
 
-const skills = [
+gsap.registerPlugin(ScrollTrigger)
+
+const Hero3DBackdrop = lazy(() => import('../components/Hero3DBackdrop'))
+const TechConstellation3D = lazy(() => import('../components/TechConstellation3D'))
+
+const ROLE_ROTATION = ['Python Backend Engineer', 'AI Systems Developer', 'Full-Stack Developer']
+
+const CAPABILITY_ROWS = [
   {
-    category: 'Frontend', icon: Globe, color: 'text-accent-400', bg: 'bg-accent-500/10 border-accent-500/20',
-    items: [
-      { name: 'React.js', level: 85 },
-      { name: 'Tailwind CSS', level: 90 },
-      { name: 'JavaScript', level: 80 },
-      { name: 'HTML5 / CSS3', level: 92 },
-    ],
+    code: '01',
+    title: 'Backend Architecture & APIs',
+    subtitle: 'FastAPI · Node.js · Express · REST Contracts',
+    summary:
+      'Modular server architectures with strict schema validation, role-based access control, JWT/OAuth security, and clean error boundaries.',
+    tools: ['Python', 'FastAPI', 'Node.js', 'Express.js', 'MongoDB', 'PostgreSQL'],
   },
   {
-    category: 'Backend', icon: Database, color: 'text-brand-400', bg: 'bg-brand-500/10 border-brand-500/20',
-    items: [
-      { name: 'Node.js', level: 80 },
-      { name: 'Express.js', level: 82 },
-      { name: 'MongoDB', level: 78 },
-      { name: 'REST APIs', level: 85 },
-    ],
+    code: '02',
+    title: 'Grounded AI & RAG Systems',
+    subtitle: 'Gemini API · Repo Parsing · Citation Validation',
+    summary:
+      'Server-side LLM pipelines that verify generated file citations against actual codebase manifests before returning responses.',
+    tools: ['Gemini API', 'Repository Parsing', 'RAG Concepts', 'Pydantic'],
   },
   {
-    category: 'AI / ML', icon: Brain, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20',
-    items: [
-      { name: 'Python', level: 75 },
-      { name: 'Scikit-learn', level: 65 },
-      { name: 'NLTK / NLP', level: 70 },
-      { name: 'Pandas', level: 72 },
-    ],
+    code: '03',
+    title: 'Full-Stack Web & Mobile',
+    subtitle: 'React · Three.js · Flutter · Multi-Role Platforms',
+    summary:
+      'Interactive 3D-enhanced React applications and cross-platform Flutter apps backed by clean REST endpoints and cloud databases.',
+    tools: ['React.js', 'Three.js', 'Tailwind CSS', 'Flutter', 'Dart', 'Docker'],
   },
   {
-    category: 'Tools', icon: Cpu, color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20',
-    items: [
-      { name: 'Git & GitHub', level: 88 },
-      { name: 'VS Code', level: 92 },
-      { name: 'Postman', level: 80 },
-      { name: 'Vercel', level: 85 },
-    ],
+    code: '04',
+    title: 'NLP & Data Analytics',
+    subtitle: 'NLTK · VADER · TextBlob · Pandas',
+    summary:
+      'Automated text preprocessing, sentiment scoring, fake-news analysis pipelines, and visual analytics dashboards.',
+    tools: ['NLTK', 'VADER', 'TextBlob', 'Pandas', 'NumPy', 'Recharts'],
   },
 ]
 
-const stats = [
-  { label: 'Projects Built', value: '20+' },
-  { label: 'Technologies', value: '15+' },
-  { label: 'GitHub Repos', value: '30+' },
-  { label: 'Years Learning', value: '3+' },
+const CORE_SKILL_TRACKS = [
+  { name: 'Python & FastAPI', stage: 'Actively Used', bars: 3, color: 'var(--accent)' },
+  { name: 'Node.js & Express', stage: 'Actively Used', bars: 3, color: 'var(--accent)' },
+  { name: 'React & Tailwind', stage: 'Actively Used', bars: 3, color: 'var(--accent)' },
+  { name: 'MongoDB & Auth (JWT/OAuth)', stage: 'Actively Used', bars: 3, color: 'var(--accent)' },
+  { name: 'Gemini API & NLP (NLTK)', stage: 'Working Knowledge', bars: 2, color: 'var(--metallic-silver)' },
+  { name: 'Docker, CI/CD & PostgreSQL', stage: 'Currently Learning', bars: 1, color: 'var(--accent-amber)' },
 ]
 
-function useInView(ref, threshold = 0.1) {
-  const [inView, setInView] = useState(false)
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true) }, { threshold })
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [ref, threshold])
-  return inView
-}
-
-function SkillBar({ name, level, color, delay = 0 }) {
-  const ref = useRef(null)
-  const inView = useInView(ref)
-  return (
-    <div ref={ref} className="mb-3">
-      <div className="flex justify-between mb-1">
-        <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{name}</span>
-        <span className="text-xs font-mono text-brand-400">{level}%</span>
-      </div>
-      <div className="h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }}>
-        <div
-          className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${color}`}
-          style={{ width: inView ? `${level}%` : '0%', transitionDelay: `${delay}ms` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-const skillColors = {
-  'Frontend': 'bg-accent-400',
-  'Backend': 'bg-brand-400',
-  'AI / ML': 'bg-purple-400',
-  'Tools': 'bg-rose-400',
+function pickFeaturedProjects(syncedList) {
+  if (!Array.isArray(syncedList) || syncedList.length === 0) return []
+  const featured = syncedList.filter((p) => p.featured !== false)
+  return featured.length > 0 ? featured : syncedList
 }
 
 export default function Home() {
-  const [featuredProjects, setFeaturedProjects] = useState([])
-  const aboutRef = useRef(null)
-  const skillsRef = useRef(null)
-  const projectsRef = useRef(null)
-  const aboutInView = useInView(aboutRef)
-  const skillsInView = useInView(skillsRef)
-  const projectsInView = useInView(projectsRef)
+  const { dark } = useTheme()
+  const [projects, setProjects] = useState(() => pickFeaturedProjects(CASE_STUDIES))
+  const [selectedStudy, setSelectedStudy] = useState(null)
+  const [openCapability, setOpenCapability] = useState('01')
+  const [roleIdx, setRoleIdx] = useState(0)
+  const [portraitError, setPortraitError] = useState(false)
 
-  const typedText = useTyping([
-    'MERN Stack Developer',
-    'AI/ML Enthusiast',
-    'Full-Stack Engineer',
-    'React Developer',
-    'Problem Solver',
-  ])
+  // Live Contact Form state on Home
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' })
+  const [sendingMsg, setSendingMsg] = useState(false)
+  const [sentMsg, setSentMsg] = useState(false)
+
+  const pageRef = useRef(null)
 
   useEffect(() => {
-    api.get('/api/projects').then(res => {
-      const featured = res.data.filter(p => p.featured).slice(0, 3)
-      setFeaturedProjects(featured.length ? featured : res.data.slice(0, 3))
-    }).catch(() => {})
+    api
+      .get('/api/projects')
+      .then((res) => setProjects(pickFeaturedProjects(syncProjectsFromApi(res.data))))
+      .catch(() => {})
   }, [])
 
-  return (
-    <div className="min-h-screen">
-      {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-16">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b10_1px,transparent_1px),linear-gradient(to_bottom,#1e293b10_1px,transparent_1px)] bg-[size:60px_60px]" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-500/8 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+  useEffect(() => {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduced) return
+    const timer = setInterval(() => {
+      setRoleIdx((i) => (i + 1) % ROLE_ROTATION.length)
+    }, 3200)
+    return () => clearInterval(timer)
+  }, [])
 
-        <div className="relative max-w-6xl mx-auto px-6 py-20 w-full">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-8 animate-fade-up">
-                <Sparkles size={14} className="text-brand-400" />
-                <span className="text-brand-400 text-sm font-mono">Available for opportunities</span>
+  useEffect(() => {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reducedMotion || !pageRef.current) return
+
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray('.reveal-section').forEach((el) => {
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 86%',
+              once: true,
+            },
+          }
+        )
+      })
+
+      gsap.fromTo(
+        '.career-spine-fill',
+        { scaleY: 0, transformOrigin: 'top center' },
+        {
+          scaleY: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.career-timeline-wrap',
+            start: 'top 74%',
+            end: 'bottom 60%',
+            scrub: 1,
+          },
+        }
+      )
+    }, pageRef)
+
+    return () => ctx.revert()
+  }, [])
+
+  const handleQuickContact = async (e) => {
+    e.preventDefault()
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.message.trim()) {
+      toast.error('Please fill name, email, and message')
+      return
+    }
+    setSendingMsg(true)
+    try {
+      await api.post('/api/messages', {
+        name: contactForm.name.trim(),
+        email: contactForm.email.trim(),
+        subject: 'Portfolio Quick Inquiry',
+        message: contactForm.message.trim(),
+      })
+      toast.success('Message delivered!')
+      setSentMsg(true)
+      setContactForm({ name: '', email: '', message: '' })
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send message')
+    } finally {
+      setSendingMsg(false)
+    }
+  }
+
+  const flagshipCodeMind =
+    projects.find((p) => String(p.title || '').toLowerCase().includes('codemind')) ||
+    projects[0] ||
+    CASE_STUDIES.find((c) => c.slug === 'codemind-ai')
+
+  return (
+    <div ref={pageRef} className="min-h-screen relative">
+      <Ambient3DBackground className="fixed inset-0 w-full h-full z-0" />
+
+      {/* ── 01 · CRIMSON X + 3D INTERACTIVE HERO ── */}
+      <section className="relative z-10 min-h-screen flex items-center pt-24 pb-16 overflow-hidden">
+        {/* Diagonal Glowing Crimson X Beams Backdrop */}
+        <div className="crimson-x-stage opacity-80" aria-hidden="true">
+          <div className="crimson-x-beam crimson-x-beam-a" />
+          <div className="crimson-x-beam crimson-x-beam-b" />
+        </div>
+
+        {/* Live 3D Three.js Crimson Stage Behind Composition */}
+        <div className="hidden md:block absolute inset-0 z-[1] opacity-85">
+          <Suspense fallback={null}>
+            <Hero3DBackdrop interactive className="w-full h-full" />
+          </Suspense>
+        </div>
+
+        <div className="relative z-10 pointer-events-none max-w-7xl w-full mx-auto px-6">
+          <div className="grid lg:grid-cols-12 gap-10 items-center">
+            {/* Left Axis: Bold Stacked Name + Role Rotation + Compact CTAs */}
+            <div className="lg:col-span-6 space-y-5 pointer-events-auto">
+              <div className="min-h-[24px]">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={ROLE_ROTATION[roleIdx]}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.28 }}
+                    className="font-mono text-xs md:text-sm uppercase tracking-[0.26em]"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    {ROLE_ROTATION[roleIdx]}
+                  </motion.p>
+                </AnimatePresence>
               </div>
 
-              <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight leading-tight mb-4 animate-fade-up animate-delay-100">
-                Hi, I'm<br />
-                <span className="gradient-text">Mansoor</span><br />
-                <span className="text-4xl md:text-5xl" style={{ color: 'var(--text-muted)' }}>Ali Khan</span>
+              <h1
+                className="font-display font-bold tracking-tight leading-[0.94] uppercase"
+                style={{ fontSize: 'clamp(2.9rem, 5.8vw, 4.9rem)', color: 'var(--text-primary)' }}
+              >
+                MANSOOR
+                <br />
+                <span className="chrome-text">ALI KHAN</span>
+                <span style={{ color: 'var(--accent)' }}>.</span>
               </h1>
 
-              {/* Typing animation */}
-              <div className="flex items-center gap-3 mb-4 animate-fade-up animate-delay-200">
-                <div className="h-px flex-1 bg-gradient-to-r from-brand-500/50 to-transparent max-w-[60px]" />
-                <p className="text-accent-400 font-mono text-sm typing-cursor min-h-[20px]">
-                  {typedText}
-                </p>
-              </div>
-
-              <p className="font-body leading-relaxed max-w-lg mb-8 animate-fade-up animate-delay-300" style={{ color: 'var(--text-muted)' }}>
-                I build full-stack web applications and explore the intersection of software engineering and artificial intelligence. Passionate about creating elegant solutions to complex problems.
+              <p className="font-body text-sm md:text-base leading-relaxed max-w-md" style={{ color: 'var(--text-muted)' }}>
+                Python APIs, grounded AI pipelines, and full-stack software engineered at COMSATS.
               </p>
 
-              <div className="flex flex-wrap gap-3 mb-8 animate-fade-up animate-delay-400">
-                <Link to="/projects" className="btn-primary">View Projects <ArrowRight size={17} /></Link>
-                <Link to="/contact" className="btn-outline">Hire Me <Mail size={17} /></Link>
-                <Link to="/resume" className="btn-outline">Resume <ArrowRight size={17} /></Link>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <a href="#projects" className="btn-primary text-xs py-3 px-6">
+                  Explore 3D Work <ArrowRight size={15} />
+                </a>
+                {flagshipCodeMind && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStudy(flagshipCodeMind)}
+                    className="btn-outline text-xs py-3 px-5"
+                  >
+                    <BookOpen size={15} /> CodeMind Flow
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-5 animate-fade-up animate-delay-500">
-                <a href="https://github.com/mansoorKhan39" target="_blank" rel="noreferrer"
-                  className="flex items-center gap-2 transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>
-                  <Github size={18} /> GitHub
-                </a>
-                <span className="w-px h-4 bg-slate-700" />
-                <a href="https://www.linkedin.com/in/mansoor-ali-khan-b27a42304" target="_blank" rel="noreferrer"
-                  className="flex items-center gap-2 transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>
-                  <Linkedin size={18} /> LinkedIn
-                </a>
-                <span className="w-px h-4 bg-slate-700" />
-                <a href="mailto:mansooralikhan1029@gmail.com"
-                  className="flex items-center gap-2 transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>
-                  <Mail size={18} /> Email
-                </a>
-              </div>
-
-              {/* Visitor counter */}
-              <div className="mt-6 animate-fade-up animate-delay-500">
-                <VisitorCounter />
-              </div>
+              <p className="font-mono text-[11px] uppercase tracking-widest pt-2" style={{ color: 'var(--text-dim)' }}>
+                Drag or click 3D stage · BS Software Engineering
+              </p>
             </div>
 
-            {/* Photo */}
-            <div className="flex justify-center items-center animate-fade-in animate-delay-300">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full border-2 border-dashed border-brand-500/20 animate-spin-slow" style={{ margin: '-20px' }} />
-                <div className="absolute inset-0 rounded-full ring-pulse" style={{
-                  background: 'conic-gradient(from 0deg, #f59e0b33, #3b82f633, #f59e0b33, #3b82f633, #f59e0b33)',
-                  filter: 'blur(8px)', margin: '-6px', borderRadius: '50%',
-                }} />
-                <div className="relative w-72 h-72 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-[var(--bg-card)] shadow-2xl animate-float">
-                  <img src="/mansoor.png" alt="Mansoor Ali Khan" className="w-full h-full object-cover object-top"
-                    style={{ filter: 'contrast(1.05) brightness(1.02)' }} />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-t from-[var(--bg-primary)]/30 via-transparent to-transparent" />
-                </div>
-                <div className="absolute -bottom-2 -left-6 border border-[var(--border)] rounded-xl px-3 py-2 shadow-xl animate-float" style={{ backgroundColor: 'var(--bg-card)', animationDelay: '1s' }}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-primary)' }}>Open to work</span>
-                  </div>
-                </div>
-                <div className="absolute -top-2 -right-6 border border-[var(--border)] rounded-xl px-3 py-2 shadow-xl animate-float" style={{ backgroundColor: 'var(--bg-card)', animationDelay: '2s' }}>
-                  <div className="flex items-center gap-2">
-                    <Code2 size={12} className="text-accent-400" />
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-primary)' }}>MERN Stack</span>
-                  </div>
-                </div>
-                <div className="absolute top-1/2 -right-8 border border-brand-500/30 rounded-xl px-3 py-2 shadow-xl animate-float" style={{ backgroundColor: 'var(--bg-card)', animationDelay: '0.5s' }}>
-                  <div className="flex items-center gap-2">
-                    <Brain size={12} className="text-purple-400" />
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-primary)' }}>AI / ML</span>
-                  </div>
-                </div>
+            {/* Right Axis: 2.5D Holographic Parallax Depth Portrait + Mobile 3D Core */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center pointer-events-auto">
+              <HeroPortraitParallax
+                portraitSrc={PERSONAL_PROFILE.portrait}
+                name={PERSONAL_PROFILE.name}
+                specialization="Python Backend & AI Systems"
+                status="AVAILABLE FOR HIGH-IMPACT BACKEND ROLES"
+              />
+
+              {/* Mobile Dedicated Interactive 3D Canvas */}
+              <div className="md:hidden relative h-[240px] w-full mt-4">
+                <Suspense fallback={null}>
+                  <Hero3DBackdrop interactive className="w-full h-full" />
+                </Suspense>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="py-16 border-y border-[var(--border)]" style={{ backgroundColor: 'var(--bg-card)' }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map(({ label, value }) => (
-              <div key={label} className="text-center">
-                <div className="font-display text-4xl font-bold gradient-text mb-2">{value}</div>
-                <div className="text-sm font-body" style={{ color: 'var(--text-dim)' }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── ABOUT ── */}
-      <section ref={aboutRef} className="py-24">
-        <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${aboutInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+      {/* ── 02 · PROJECTS. (3D Coverflow Stage + Bento Grid Deck — 100% Admin Managed) ── */}
+      <section
+        id="projects"
+        className="reveal-section relative z-10 py-24 border-t border-[var(--border)]"
+        style={{ backgroundColor: dark ? 'rgba(17, 13, 20, 0.78)' : 'rgba(243, 239, 248, 0.85)' }}
+      >
+        <div className="max-w-7xl mx-auto px-6 space-y-12">
+          {/* Authentic High-Impact Header + Live System Highlights */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <p className="text-brand-400 font-mono text-sm mb-4">// about me</p>
-              <h2 className="section-heading mb-6">Crafting Digital<br /><span className="gradient-text">Experiences</span></h2>
-              <div className="space-y-4 font-body leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                <p>I'm a passionate full-stack developer with strong expertise in the MERN stack. I love transforming ideas into production-ready applications.</p>
-                <p>Beyond web development, I'm deeply interested in AI and Machine Learning. I work with Python-based ML frameworks to build intelligent systems.</p>
-                <p>I believe in clean code, intuitive design, and continuous learning.</p>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                {['Problem Solver', 'Team Player', 'Fast Learner', 'Clean Code'].map(t => (
-                  <span key={t} className="tag">{t}</span>
-                ))}
-              </div>
+              <p className="font-mono text-xs uppercase tracking-[0.28em] mb-2" style={{ color: 'var(--accent)' }}>
+                Featured Systems · {projects.length} Live Records
+              </p>
+              <h2
+                className="font-display font-bold uppercase tracking-tight"
+                style={{ fontSize: 'clamp(2.5rem, 5vw, 4.2rem)', color: 'var(--text-primary)' }}
+              >
+                PROJECTS<span style={{ color: 'var(--accent)' }}>.</span>
+              </h2>
             </div>
 
-            {/* Code visual */}
-            <div className="relative">
-              <div className="rounded-2xl border border-[var(--border)] overflow-hidden shadow-2xl" style={{ backgroundColor: 'var(--bg-card)' }}>
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]" style={{ backgroundColor: 'var(--bg-sidebar)' }}>
-                  <div className="w-3 h-3 rounded-full bg-rose-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-brand-400/80" />
-                  <span className="ml-2 text-xs font-mono" style={{ color: 'var(--text-dim)' }}>mansoor.js</span>
-                </div>
-                <pre className="p-6 text-sm font-mono leading-relaxed overflow-x-auto">
-                  <code>
-                    <span style={{ color: 'var(--text-dim)' }}>{'// Developer Profile\n'}</span>
-                    <span className="text-purple-400">const </span>
-                    <span className="text-accent-400">mansoor</span>
-                    <span style={{ color: 'var(--text-primary)' }}> = {'{\n'}</span>
-                    <span className="text-brand-400">{'  name'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>: </span>
-                    <span className="text-yellow-300">'Mansoor Ali Khan'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>,{'\n'}</span>
-                    <span className="text-brand-400">{'  role'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>: </span>
-                    <span className="text-yellow-300">'MERN Stack Dev'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>,{'\n'}</span>
-                    <span className="text-brand-400">{'  stack'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>: [</span>
-                    <span className="text-yellow-300">'Mongo'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>, </span>
-                    <span className="text-yellow-300">'Express'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>,{'\n'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>{'           '}</span>
-                    <span className="text-yellow-300">'React'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>, </span>
-                    <span className="text-yellow-300">'Node'</span>
-                    <span style={{ color: 'var(--text-primary)' }}>],{'\n'}</span>
-                    <span className="text-brand-400">{'  ai_ml'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>: </span>
-                    <span className="text-orange-400">true</span>
-                    <span style={{ color: 'var(--text-primary)' }}>,{'\n'}</span>
-                    <span className="text-brand-400">{'  available'}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>: </span>
-                    <span className="text-orange-400">true</span>
-                    <span style={{ color: 'var(--text-primary)' }}>{'\n};\n\n'}</span>
-                    <span style={{ color: 'var(--text-dim)' }}>{"// Let's build together 🚀"}</span>
-                  </code>
-                </pre>
-              </div>
+            <div className="flex items-center gap-3">
+              <Link to="/projects" className="btn-outline text-xs py-2.5">
+                All Projects <ArrowRight size={14} />
+              </Link>
             </div>
+          </div>
+
+          {/* Integrated 3D Horizon Stage + Bento Matrix */}
+          <ProjectShowcase3D projects={projects} onInspect={setSelectedStudy} />
+        </div>
+      </section>
+
+      {/* ── 03 · ABOUT MANSOOR. (Swinging Lanyard 3D Portrait Card + Editorial Copy) ── */}
+      <section id="about" className="reveal-section relative z-10 py-24 border-t border-[var(--border)]">
+        <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-12 gap-12 items-center">
+          {/* Left Copy */}
+          <div className="lg:col-span-7 space-y-6">
+            <h2
+              className="font-display font-bold uppercase leading-[0.96]"
+              style={{ fontSize: 'clamp(2.4rem, 4.4vw, 3.8rem)', color: 'var(--text-primary)' }}
+            >
+              ABOUT
+              <br />
+              <span style={{ color: 'var(--accent)' }}>MANSOOR.</span>
+            </h2>
+
+            <p className="font-body text-sm md:text-base leading-relaxed max-w-xl" style={{ color: 'var(--text-muted)' }}>
+              Software Engineering student at COMSATS Islamabad focused on designing clean APIs, secure auth systems, and grounded AI software that works reliably outside demos.
+            </p>
+
+            <ul className="space-y-2.5 text-sm font-body" style={{ color: 'var(--text-primary)' }}>
+              {ENGINEERING_PRACTICES.slice(0, 3).map((item) => (
+                <li key={item.title} className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} style={{ color: 'var(--accent)' }} className="shrink-0" />
+                  <span>
+                    <strong className="font-semibold">{item.title}:</strong>{' '}
+                    <span style={{ color: 'var(--text-muted)' }}>{item.tools.join(', ')}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[var(--border)]">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link to="/about" className="btn-outline text-xs py-2">
+                  Philosophy <ArrowRight size={13} />
+                </Link>
+                <Link to="/education" className="btn-outline text-xs py-2">
+                  Education
+                </Link>
+                <a href={PERSONAL_PROFILE.resumePdf} download className="btn-primary text-xs py-2">
+                  <Download size={13} /> CV
+                </a>
+              </div>
+              <VisitorCounter />
+            </div>
+          </div>
+
+          {/* Right Hanging Lanyard 3D Draggable Physics Portrait Card */}
+          <div className="lg:col-span-5 flex justify-center">
+            <LanyardPortraitCard
+              portraitSrc={PERSONAL_PROFILE.portrait}
+              name={PERSONAL_PROFILE.name}
+              title="Python Backend & AI Systems"
+              university={PERSONAL_PROFILE.university}
+              degree={PERSONAL_PROFILE.degree}
+            />
           </div>
         </div>
       </section>
 
-      {/* ── SKILLS WITH PROGRESS BARS ── */}
-      <section ref={skillsRef} className="py-24" style={{ backgroundColor: 'var(--bg-card)' }}>
-        <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${skillsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="text-center mb-16">
-            <p className="text-brand-400 font-mono text-sm mb-4">// skills & technologies</p>
-            <h2 className="section-heading">What I Work With</h2>
+      {/* ── 04 · CAPABILITIES / WHAT I BUILD (Crimson Arrow Accordion Rows) ── */}
+      <section
+        id="capabilities"
+        className="reveal-section relative z-10 py-24 border-t border-[var(--border)]"
+        style={{ backgroundColor: dark ? 'rgba(17, 13, 20, 0.78)' : 'rgba(243, 239, 248, 0.85)' }}
+      >
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="font-mono text-xs uppercase tracking-[0.28em] mb-2" style={{ color: 'var(--accent)' }}>
+              Core Engineering
+            </p>
+            <h2
+              className="font-display font-bold uppercase"
+              style={{ fontSize: 'clamp(2.4rem, 4.6vw, 3.8rem)', color: 'var(--text-primary)' }}
+            >
+              WHAT I <span style={{ color: 'var(--accent)' }}>BUILD.</span>
+            </h2>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {skills.map(({ category, icon: Icon, color, bg, items }, i) => (
-              <div key={category} className="card hover:border-slate-700 transition-all duration-300 hover:-translate-y-1">
-                <div className={`inline-flex p-2.5 rounded-lg border ${bg} mb-4`}>
-                  <Icon size={20} className={color} />
+
+          <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
+            {CAPABILITY_ROWS.map((row) => {
+              const isOpen = openCapability === row.code
+              return (
+                <div
+                  key={row.code}
+                  onClick={() => setOpenCapability(isOpen ? '' : row.code)}
+                  className="py-6 px-2 sm:px-4 cursor-pointer transition-colors hover:bg-white/[0.02]"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-baseline gap-4 sm:gap-7">
+                      <span className="font-mono text-xs sm:text-sm font-bold" style={{ color: 'var(--accent)' }}>
+                        {row.code}
+                      </span>
+                      <div>
+                        <h3 className="font-display font-bold text-xl sm:text-2xl" style={{ color: 'var(--text-primary)' }}>
+                          {row.title}
+                        </h3>
+                        <p className="font-mono text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
+                          {row.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      aria-label={`Toggle ${row.title}`}
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-transform duration-300"
+                      style={{
+                        backgroundColor: isOpen ? 'var(--accent)' : 'transparent',
+                        borderColor: isOpen ? 'var(--accent)' : 'var(--border-strong)',
+                        color: isOpen ? '#ffffff' : 'var(--accent)',
+                        transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                      }}
+                    >
+                      <ArrowUpRight size={17} />
+                    </button>
+                  </div>
+
+                  {isOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.22 }}
+                      className="mt-4 pl-8 sm:pl-12 space-y-3"
+                    >
+                      <p className="font-body text-sm leading-relaxed max-w-2xl" style={{ color: 'var(--text-muted)' }}>
+                        {row.summary}
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs font-mono" style={{ color: 'var(--text-primary)' }}>
+                        {row.tools.map((t, idx) => (
+                          <span key={t} className="inline-flex items-center gap-2">
+                            <span>{t}</span>
+                            {idx < row.tools.length - 1 && <span style={{ color: 'var(--accent)' }}>·</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
-                <h3 className="font-display font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{category}</h3>
-                <div className="space-y-1">
-                  {items.map((item, j) => (
-                    <SkillBar
-                      key={item.name}
-                      name={item.name}
-                      level={item.level}
-                      color={skillColors[category]}
-                      delay={j * 100}
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 05 · JOURNEY TIMELINE (Glowing Crimson Laser Spine) ── */}
+      <section id="journey" className="reveal-section relative z-10 py-24 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2
+              className="font-display font-bold uppercase leading-tight"
+              style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3.6rem)', color: 'var(--text-primary)' }}
+            >
+              ENGINEERING <span style={{ color: 'var(--accent)' }}>JOURNEY.</span>
+            </h2>
+          </div>
+
+          <div className="career-timeline-wrap relative">
+            <div className="absolute left-3 md:left-1/2 top-0 bottom-0 -translate-x-1/2 w-[3px] bg-[var(--border)]">
+              <div className="career-spine-fill career-laser-spine w-full h-full relative">
+                <div className="career-laser-dot absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2" />
+              </div>
+            </div>
+
+            <div className="space-y-12">
+              {JOURNEY_MILESTONES.map((item) => (
+                <div
+                  key={item.period}
+                  className="grid md:grid-cols-12 gap-4 md:gap-10 items-start pl-10 md:pl-0"
+                >
+                  <div className="md:col-span-5 md:text-right md:pr-8 flex md:flex-row-reverse items-baseline justify-between md:justify-start gap-4">
+                    <span className="font-display font-bold text-2xl md:text-3xl shrink-0" style={{ color: 'var(--text-primary)' }}>
+                      {item.period}
+                    </span>
+                    <div>
+                      <h3 className="font-display font-semibold text-base md:text-lg" style={{ color: 'var(--text-primary)' }}>
+                        {item.role}
+                      </h3>
+                      <p className="font-mono text-xs mt-0.5" style={{ color: 'var(--accent)' }}>
+                        {item.org}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:block md:col-span-2" />
+
+                  <div className="md:col-span-5 md:pl-4">
+                    <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center mt-14">
+            <Link to="/journey" className="btn-outline text-xs">
+              Full Learning Roadmap <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 06 · 3D TECH SPHERE + STAGE SKILLS & TOOLKIT ── */}
+      <section
+        id="tech-stack"
+        className="reveal-section relative z-10 py-24 border-t border-[var(--border)]"
+        style={{ backgroundColor: dark ? 'rgba(17, 13, 20, 0.78)' : 'rgba(243, 239, 248, 0.85)' }}
+      >
+        <div className="max-w-6xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-2">
+            <p className="font-mono text-xs uppercase tracking-[0.28em]" style={{ color: 'var(--accent)' }}>
+              3D Stack &amp; Usage Tiers
+            </p>
+            <h2
+              className="font-display font-bold uppercase"
+              style={{ fontSize: 'clamp(2.3rem, 4.5vw, 3.8rem)', color: 'var(--text-primary)' }}
+            >
+              ENGINEERING <span style={{ color: 'var(--accent)' }}>SKILLS.</span>
+            </h2>
+          </div>
+
+          {/* Crisp 2-Column Stage Matrix (Zero Fake Percentages — Authentic Tiers) */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {CORE_SKILL_TRACKS.map((skill) => (
+              <div
+                key={skill.name}
+                className="rounded-xl p-4 border border-[var(--border)] flex flex-col gap-2.5"
+                style={{ backgroundColor: 'var(--bg-card)' }}
+              >
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-semibold text-sm font-display" style={{ color: 'var(--text-primary)' }}>
+                    {skill.name}
+                  </span>
+                  <span style={{ color: skill.color }}>{skill.stage}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 h-1.5">
+                  {[1, 2, 3].map((step) => (
+                    <span
+                      key={step}
+                      className="rounded-full"
+                      style={{
+                        backgroundColor: step <= skill.bars ? skill.color : 'rgba(255,255,255,0.08)',
+                      }}
                     />
                   ))}
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Interactive 3D WebGL Crimson Tech Sphere */}
+          <Suspense fallback={null}>
+            <TechConstellation3D />
+          </Suspense>
+
+          {/* Horizontal Framer Motion Skill Timeline */}
+          <SkillTimeline showCategoryFilters layoutPrefix="home-skills" />
         </div>
       </section>
 
-      {/* ── FEATURED PROJECTS ── */}
-      <section ref={projectsRef} className="py-24">
-        <div className={`max-w-6xl mx-auto px-6 transition-all duration-700 ${projectsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="flex items-end justify-between mb-16">
-            <div>
-              <p className="text-brand-400 font-mono text-sm mb-4">// featured work</p>
-              <h2 className="section-heading">Recent Projects</h2>
-            </div>
-            <Link to="/projects" className="btn-outline text-sm hidden md:inline-flex">All Projects <ArrowRight size={16} /></Link>
+      {/* ── 07 · CENTERED CRIMSON CONTACT STAGE (Direct Live API Form) ── */}
+      <section id="contact" className="reveal-section relative z-10 py-24 border-t border-[var(--border)]">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-center mb-10 space-y-2">
+            <h2
+              className="font-display font-bold uppercase"
+              style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: 'var(--text-primary)' }}
+            >
+              CONTACT<span style={{ color: 'var(--accent)' }}>.</span>
+            </h2>
+            <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>
+              Open to Junior Backend / AI Engineering roles, internships &amp; collaborations.
+            </p>
           </div>
 
-          {featuredProjects.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProjects.map((project, i) => (
-                <ProjectCard key={project._id} project={project} delay={i * 100} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16" style={{ color: 'var(--text-dim)' }}>
-              <Code2 size={40} className="mx-auto mb-4 opacity-30" />
-              <p className="font-body">Add projects from admin panel</p>
-            </div>
-          )}
+          <div
+            className="rounded-3xl p-6 sm:p-8 border shadow-2xl"
+            style={{
+              backgroundColor: 'var(--bg-card-solid)',
+              borderColor: 'var(--border-strong)',
+              boxShadow: '0 24px 90px -30px rgba(194, 164, 255, 0.35)',
+            }}
+          >
+            {sentMsg ? (
+              <div className="text-center py-10 space-y-4">
+                <CheckCircle2 size={38} className="mx-auto" style={{ color: 'var(--accent)' }} />
+                <h3 className="font-display font-bold text-xl" style={{ color: 'var(--text-primary)' }}>
+                  Message Sent!
+                </h3>
+                <p className="font-body text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Thanks for reaching out — I&apos;ll get back to you soon.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSentMsg(false)}
+                  className="btn-outline text-xs"
+                >
+                  Send Another
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleQuickContact} className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Your Name"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm((p) => ({ ...p, name: e.target.value }))}
+                    className="input-field text-sm"
+                  />
+                  <input
+                    type="email"
+                    required
+                    placeholder="Your Email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm((p) => ({ ...p, email: e.target.value }))}
+                    className="input-field text-sm"
+                  />
+                </div>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Tell me about the role, project, or collaboration..."
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
+                  className="input-field text-sm resize-none"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingMsg}
+                  className="btn-primary w-full justify-center py-3 text-sm disabled:opacity-60"
+                >
+                  {sendingMsg ? (
+                    <>
+                      <Loader size={16} className="animate-spin" /> Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={15} /> Send Message
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
 
-          <div className="text-center mt-10 md:hidden">
-            <Link to="/projects" className="btn-outline">All Projects <ArrowRight size={16} /></Link>
+            <div className="mt-6 pt-5 border-t border-[var(--border)] flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
+              <a
+                href={`mailto:${PERSONAL_PROFILE.email}`}
+                className="inline-flex items-center gap-1.5 hover:opacity-80"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <Mail size={14} style={{ color: 'var(--accent)' }} /> {PERSONAL_PROFILE.email}
+              </a>
+              <a
+                href={PERSONAL_PROFILE.github}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 hover:opacity-80"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <Github size={14} style={{ color: 'var(--accent)' }} /> GitHub
+              </a>
+              <a
+                href={PERSONAL_PROFILE.linkedin}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 hover:opacity-80"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <Linkedin size={14} style={{ color: 'var(--accent)' }} /> LinkedIn
+              </a>
+              <Link
+                to="/resume"
+                className="inline-flex items-center gap-1.5 hover:opacity-80"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Resume <ArrowUpRight size={13} style={{ color: 'var(--accent)' }} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-24 border-t border-[var(--border)]">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="relative rounded-3xl p-12 overflow-hidden border border-brand-500/20" style={{ backgroundColor: 'var(--bg-card)' }}>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-accent-500/5" />
-            <div className="relative">
-              <Sparkles className="mx-auto mb-4 text-brand-400" size={32} />
-              <h2 className="font-display text-4xl font-bold mb-4">Let's Build Something <span className="gradient-text">Amazing</span></h2>
-              <p className="font-body mb-8 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Have a project in mind or looking for a developer? I'm open to freelance work, collaborations, and full-time opportunities.
-              </p>
-              <Link to="/contact" className="btn-primary text-base">Start a Conversation <ArrowRight size={18} /></Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8" style={{ backgroundColor: 'var(--bg-card)' }}>
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm font-mono" style={{ color: 'var(--text-dim)' }}>© 2024 Mansoor Ali Khan. Built with MERN stack.</p>
-          <div className="flex items-center gap-6">
-            <a href="https://github.com/mansoorKhan39" target="_blank" rel="noreferrer" className="transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>GitHub</a>
-            <a href="https://www.linkedin.com/in/mansoor-ali-khan-b27a42304" target="_blank" rel="noreferrer" className="transition-colors text-sm hover:text-brand-400" style={{ color: 'var(--text-dim)' }}>LinkedIn</a>
-            <Link to="/admin" className="transition-colors text-xs hover:text-slate-500" style={{ color: 'var(--text-dim)' }}>Admin</Link>
-          </div>
-        </div>
-      </footer>
+      <CaseStudyDrawer study={selectedStudy} onClose={() => setSelectedStudy(null)} />
     </div>
   )
 }

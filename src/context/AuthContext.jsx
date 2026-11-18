@@ -9,8 +9,19 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token')
-    setIsAdmin(!!token)
-    setLoading(false)
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
+    api
+      .get('/api/auth/verify')
+      .then(() => setIsAdmin(true))
+      .catch(() => {
+        localStorage.removeItem('admin_token')
+        setIsAdmin(false)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   const login = async (password) => {

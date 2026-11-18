@@ -1,167 +1,141 @@
-import { Download, GraduationCap, Briefcase, Code2, Award, ExternalLink } from 'lucide-react'
-
-const education = [
-  {
-    degree: 'BS Software Engineering',
-    institution: 'COMSATS University Islamabad',
-    period: '2023 – Present',
-    detail: 'CGPA: 3.06 / 4.0  •  5th Semester  •  Expected Graduation: 2027',
-    color: 'text-brand-400',
-    border: 'border-brand-500/30',
-  },
-]
-
-const skills = [
-  { label: 'Frontend', items: ['React.js', 'Next.js', 'HTML5', 'CSS3', 'Tailwind CSS', 'JavaScript', 'TypeScript'], color: 'bg-accent-500' },
-  { label: 'Backend', items: ['Node.js', 'Express.js', 'REST APIs', 'MongoDB', 'Mongoose', 'JWT Auth'], color: 'bg-brand-500' },
-  { label: 'AI / ML', items: ['Python', 'TensorFlow', 'Scikit-learn', 'NLTK', 'VADER', 'Pandas', 'NumPy'], color: 'bg-purple-500' },
-  { label: 'Tools', items: ['Git', 'GitHub', 'VS Code', 'Postman', 'Vercel', 'Docker', 'Linux'], color: 'bg-rose-500' },
-]
-
-const projects = [
-  {
-    name: 'Exclusive — E-Commerce Platform',
-    period: 'May 2026',
-    live: 'https://exclusive-ecommerce-maah.vercel.app',
-    github: 'https://github.com/mansoorKhan39/Exclusive-Ecommerce',
-    color: 'border-accent-500/40 bg-accent-500/5',
-    dot: 'bg-accent-400',
-    points: [
-      'Built production-ready MERN e-commerce app with JWT auth & Google OAuth',
-      'Admin dashboard for product, order & user management with revenue overview',
-      'Cart, wishlist, flash sales with countdown, reviews & ratings system',
-      'Docker support, fully responsive mobile-first design',
-    ],
-    tags: ['MongoDB', 'Express', 'React', 'Node.js', 'JWT', 'Google OAuth', 'Docker'],
-  },
-  {
-    name: 'TruthPulse — Fake News & Sentiment Dashboard',
-    period: 'May 2026',
-    live: 'https://truthpulse-aymd.vercel.app',
-    github: 'https://github.com/mansoorKhan39/truthpulse',
-    color: 'border-purple-500/40 bg-purple-500/5',
-    dot: 'bg-purple-400',
-    points: [
-      'Analyzed 44,898 news articles & 160,000 tweets using NLP for fake news detection',
-      'Built sentiment scoring pipeline with VADER & TextBlob',
-      'Interactive React dashboard with Recharts for real-time data visualization',
-      'REST API with Node.js & Express, MongoDB Atlas database',
-    ],
-    tags: ['React', 'Node.js', 'Python', 'NLTK', 'VADER', 'MongoDB', 'Recharts'],
-  },
-  {
-    name: 'Personal Portfolio Website',
-    period: 'May 2026',
-    live: 'https://mansoor-portfolio-frontend-w3ek.vercel.app',
-    github: 'https://github.com/mansoorKhan39/mansoor-portfolio-frontend',
-    color: 'border-brand-500/40 bg-brand-500/5',
-    dot: 'bg-brand-400',
-    points: [
-      'Full-stack MERN portfolio with JWT-protected admin panel',
-      'Contact inbox with read/unread tracking & email reply feature',
-      'Project CRUD — add, edit, delete, feature from admin dashboard',
-      'Custom dark/light theme, responsive design',
-    ],
-    tags: ['React', 'Node.js', 'Express', 'MongoDB', 'JWT', 'Tailwind CSS'],
-  },
-]
+import { Download, GraduationCap, Briefcase, Code2, Award, ExternalLink, CheckCircle2, Languages } from 'lucide-react'
+import Ambient3DBackground from '../components/Ambient3DBackground'
+import TiltCard3D from '../components/TiltCard3D'
+import {
+  PERSONAL_PROFILE,
+  ABOUT_NARRATIVE,
+  EDUCATION_INFO,
+  SKILL_CATEGORIES,
+  CASE_STUDIES,
+  CAREER_ROADMAP,
+  OPEN_OPPORTUNITIES,
+} from '../data/portfolioData'
 
 export default function Resume() {
   return (
-    <div className="min-h-screen pt-24 pb-20">
-      <div className="max-w-4xl mx-auto px-6">
+    <div className="min-h-screen relative pt-28 pb-24 overflow-hidden">
+      <Ambient3DBackground className="fixed inset-0 w-full h-full z-0" />
 
+      <div className="relative z-10 max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <p className="text-brand-400 font-mono text-sm mb-3">// my resume</p>
-            <h1 className="section-heading mb-2">Mansoor Ali Khan</h1>
-            <p className="font-mono text-sm text-accent-400">MERN Stack Developer  •  AI/ML Enthusiast</p>
+            <p className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--text-dim)' }}>
+              Verified Curriculum Vitae
+            </p>
+            <h1 className="section-heading mb-2">
+              Mansoor <span className="chrome-text">Ali Khan</span>
+            </h1>
+            <p className="font-mono text-xs sm:text-sm" style={{ color: 'var(--metallic-silver)' }}>
+              {PERSONAL_PROFILE.positioning}
+            </p>
           </div>
-          <a href="/Mansoor_Ali_Khan_CV.pdf" download className="btn-primary shrink-0">
-            <Download size={17} /> Download CV (PDF)
+          <a href={PERSONAL_PROFILE.resumePdf} download className="btn-primary shrink-0">
+            <Download size={16} /> Download CV (PDF)
           </a>
         </div>
 
         {/* Contact info bar */}
-        <div className="card mb-10 flex flex-wrap gap-6">
+        <div className="card mb-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { label: 'Email', value: 'mansooralikhan1029@gmail.com', href: 'mailto:mansooralikhan1029@gmail.com' },
-            { label: 'GitHub', value: 'github.com/mansoorKhan39', href: 'https://github.com/mansoorKhan39' },
-            { label: 'LinkedIn', value: 'mansoor-ali-khan-b27a42304', href: 'https://www.linkedin.com/in/mansoor-ali-khan-b27a42304' },
-            { label: 'Location', value: 'Islamabad, Pakistan', href: null },
+            { label: 'Email', value: PERSONAL_PROFILE.email, href: `mailto:${PERSONAL_PROFILE.email}` },
+            { label: 'GitHub', value: 'github.com/mansoorKhan39', href: PERSONAL_PROFILE.github },
+            { label: 'LinkedIn', value: 'mansoor-ali-khan-b27a42304', href: PERSONAL_PROFILE.linkedin },
+            { label: 'Location', value: PERSONAL_PROFILE.location, href: null },
           ].map(({ label, value, href }) => (
-            <div key={label}>
-              <p className="text-xs font-mono text-brand-400 mb-0.5">{label}</p>
+            <div key={label} className="min-w-0">
+              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-dim)' }}>{label}</p>
               {href ? (
-                <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
-                  className="text-sm hover:text-brand-400 transition-colors" style={{ color: 'var(--text-muted)' }}>{value}</a>
+                <a
+                  href={href}
+                  target={href.startsWith('http') ? '_blank' : undefined}
+                  rel="noreferrer"
+                  className="text-sm hover:opacity-80 transition-opacity truncate block"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {value}
+                </a>
               ) : (
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{value}</p>
+                <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                  {value}
+                </p>
               )}
             </div>
           ))}
         </div>
 
-        {/* Summary */}
+        {/* Profile Summary */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-brand-500/10 border border-brand-500/20">
-              <Award size={18} className="text-brand-400" />
+            <div className="p-2 rounded-xl border border-[var(--border)]" style={{ backgroundColor: 'var(--bg-card)' }}>
+              <Award size={18} style={{ color: 'var(--chrome-highlight)' }} />
             </div>
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Profile Summary</h2>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Profile Summary
+            </h2>
           </div>
-          <div className="card">
+          <div className="card space-y-3">
             <p className="font-body leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Passionate Software Engineering student at COMSATS University Islamabad with hands-on experience building
-              full-stack web applications using the MERN stack. Skilled in developing production-ready applications with
-              clean architecture, secure authentication, and responsive UI. Actively exploring Machine Learning and Data
-              Science with Python. Strong problem-solver with a focus on real-world, scalable solutions.
+              {ABOUT_NARRATIVE[0]} {ABOUT_NARRATIVE[2]}
             </p>
           </div>
         </div>
 
-        {/* Education */}
+        {/* Education (Zero CGPA) */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-brand-500/10 border border-brand-500/20">
-              <GraduationCap size={18} className="text-brand-400" />
+            <div className="p-2 rounded-xl border border-[var(--border)]" style={{ backgroundColor: 'var(--bg-card)' }}>
+              <GraduationCap size={18} style={{ color: 'var(--chrome-highlight)' }} />
             </div>
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Education</h2>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Education
+            </h2>
           </div>
-          {education.map(ed => (
-            <div key={ed.degree} className={`card border-l-4 ${ed.border}`}>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                <h3 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{ed.degree}</h3>
-                <span className={`text-sm font-mono ${ed.color}`}>{ed.period}</span>
-              </div>
-              <p className={`font-semibold text-sm mb-1 ${ed.color}`}>{ed.institution}</p>
-              <p className="text-sm font-mono" style={{ color: 'var(--text-dim)' }}>{ed.detail}</p>
+          <div className="card border-[var(--border-strong)]">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+              <h3 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                {EDUCATION_INFO.degree}
+              </h3>
+              <span className="text-sm font-mono" style={{ color: 'var(--metallic-silver)' }}>
+                {EDUCATION_INFO.semester} · Expected {EDUCATION_INFO.expectedGraduation}
+              </span>
             </div>
-          ))}
+            <p className="font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>
+              {EDUCATION_INFO.institution} — {EDUCATION_INFO.location}
+            </p>
+            <p className="text-xs font-mono leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+              Coursework: {EDUCATION_INFO.coursework.join(' · ')}
+            </p>
+          </div>
         </div>
 
-        {/* Skills */}
+        {/* Skills (Categorized by Honest Tiers, Zero Percentages) */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-brand-500/10 border border-brand-500/20">
-              <Code2 size={18} className="text-brand-400" />
+            <div className="p-2 rounded-xl border border-[var(--border)]" style={{ backgroundColor: 'var(--bg-card)' }}>
+              <Code2 size={18} style={{ color: 'var(--chrome-highlight)' }} />
             </div>
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Technical Skills</h2>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Technical Skills
+            </h2>
           </div>
           <div className="card">
             <div className="grid md:grid-cols-2 gap-6">
-              {skills.map(({ label, items, color }) => (
-                <div key={label}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-2 h-2 rounded-full ${color}`} />
-                    <span className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{label}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {items.map(item => (
-                      <span key={item} className="text-xs px-2 py-1 rounded-md font-mono border border-[var(--border)]"
-                        style={{ backgroundColor: 'var(--bg-sidebar)', color: 'var(--text-muted)' }}>
-                        {item}
+              {SKILL_CATEGORIES.map(({ category, items }) => (
+                <div key={category}>
+                  <p className="font-display font-semibold text-sm mb-2" style={{ color: 'var(--text-primary)' }}>
+                    {category}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                    {items.map((item, idx) => (
+                      <span key={item.name} className="inline-flex items-center gap-2">
+                        <span>
+                          {item.name}{' '}
+                          <span style={{ color: 'var(--text-dim)' }}>({item.tier})</span>
+                        </span>
+                        {idx < items.length - 1 && (
+                          <span aria-hidden="true" style={{ color: 'var(--text-dim)' }}>·</span>
+                        )}
                       </span>
                     ))}
                   </div>
@@ -171,67 +145,116 @@ export default function Resume() {
           </div>
         </div>
 
-        {/* Projects */}
+        {/* Verified Projects */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-brand-500/10 border border-brand-500/20">
-              <Briefcase size={18} className="text-brand-400" />
+            <div className="p-2 rounded-xl border border-[var(--border)]" style={{ backgroundColor: 'var(--bg-card)' }}>
+              <Briefcase size={18} style={{ color: 'var(--chrome-highlight)' }} />
             </div>
-            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Projects</h2>
+            <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Verified Projects
+            </h2>
           </div>
           <div className="space-y-4">
-            {projects.map(proj => (
-              <div key={proj.name} className={`card border ${proj.color}`}>
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${proj.dot}`} />
-                    <h3 className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>{proj.name}</h3>
+            {CASE_STUDIES.slice(0, 5).map((proj) => (
+              <TiltCard3D key={proj.slug} maxTilt={3}>
+                <div className="card hover:border-[var(--border-strong)]">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
+                    <div>
+                      <h3 className="font-display font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                        {proj.title} — {proj.subtitle}
+                      </h3>
+                      <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-dim)' }}>
+                        Status: {proj.status}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0 text-xs font-mono">
+                      {proj.githubUrl ? (
+                        <a
+                          href={proj.githubUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:opacity-80 transition-opacity inline-flex items-center gap-1"
+                          style={{ color: 'var(--text-muted)' }}
+                        >
+                          GitHub <ExternalLink size={11} />
+                        </a>
+                      ) : (
+                        <span style={{ color: 'var(--text-dim)' }}>[Repo Placeholder]</span>
+                      )}
+                      {proj.liveUrl && (
+                        <a
+                          href={proj.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 font-semibold"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
+                          Live <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-dim)' }}>{proj.period}</span>
-                    <a href={proj.github} target="_blank" rel="noreferrer"
-                      className="text-xs hover:text-brand-400 transition-colors flex items-center gap-1" style={{ color: 'var(--text-dim)' }}>
-                      GitHub <ExternalLink size={11} />
-                    </a>
-                    <a href={proj.live} target="_blank" rel="noreferrer"
-                      className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1">
-                      Live <ExternalLink size={11} />
-                    </a>
+
+                  <ul className="space-y-1.5 mb-4">
+                    {proj.features.slice(0, 3).map((pt, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm font-body" style={{ color: 'var(--text-muted)' }}>
+                        <span className="mt-0.5 shrink-0" style={{ color: 'var(--metallic-silver)' }}>→</span>
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-mono" style={{ color: 'var(--text-dim)' }}>
+                    {proj.techStack.map((tag, idx) => (
+                      <span key={tag} className="inline-flex items-center gap-2">
+                        <span style={{ color: 'var(--text-muted)' }}>{tag}</span>
+                        {idx < proj.techStack.length - 1 && <span aria-hidden="true">·</span>}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                <ul className="space-y-1.5 mb-4">
-                  {proj.points.map((pt, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm font-body" style={{ color: 'var(--text-muted)' }}>
-                      <span className="text-brand-400 mt-1 shrink-0">→</span> {pt}
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex flex-wrap gap-1.5">
-                  {proj.tags.map(tag => (
-                    <span key={tag} className="text-xs px-2 py-0.5 rounded font-mono border border-[var(--border)]"
-                      style={{ backgroundColor: 'var(--bg-sidebar)', color: 'var(--text-dim)' }}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              </TiltCard3D>
             ))}
           </div>
         </div>
 
-        {/* Languages */}
-        <div className="card">
-          <h3 className="font-display font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Languages</h3>
-          <div className="flex gap-8">
-            {[['Urdu', 'Native'], ['English', 'Professional']].map(([lang, level]) => (
-              <div key={lang}>
-                <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{lang}</p>
-                <p className="text-xs font-mono text-brand-400">{level}</p>
-              </div>
-            ))}
+        {/* Languages & Open Opportunities */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="card">
+            <div className="flex items-center gap-2 mb-4">
+              <Languages size={16} style={{ color: 'var(--chrome-highlight)' }} />
+              <h3 className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>
+                Languages
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {[
+                ['English', 'Professional Working Proficiency'],
+                ['Urdu', 'Native / Bilingual'],
+              ].map(([lang, note]) => (
+                <div key={lang}>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{lang}</p>
+                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <h3 className="font-display font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Target Opportunities
+            </h3>
+            <div className="space-y-2">
+              {OPEN_OPPORTUNITIES.map((role) => (
+                <div key={role} className="flex items-center gap-2 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                  <CheckCircle2 size={12} style={{ color: 'var(--metallic-silver)' }} />
+                  <span>{role}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   )
